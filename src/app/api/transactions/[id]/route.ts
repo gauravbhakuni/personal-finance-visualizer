@@ -4,15 +4,22 @@ import { connectDB } from '@/lib/db';
 import { Transaction } from '@/models/Transaction';
 import { NextResponse } from 'next/server';
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
+function getIdFromUrl(url: string): string | undefined {
+  const parts = url.split('/');
+  return parts[parts.length - 1] || undefined;
+}
+
+export async function PUT(req: Request): Promise<NextResponse> {
   try {
     const body = await req.json();
     await connectDB();
-    const {id} = await params;
-    // console.log(id, "----------hello----------");
+    const id = getIdFromUrl(req.url);
+    if (!id) {
+      return NextResponse.json(
+        { message: 'Missing transaction id' },
+        { status: 400 }
+      );
+    }
     const updated = await Transaction.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
@@ -26,13 +33,16 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
+export async function DELETE(req: Request): Promise<NextResponse> {
   try {
     await connectDB();
-    const {id} = await params;
+    const id = getIdFromUrl(req.url);
+    if (!id) {
+      return NextResponse.json(
+        { message: 'Missing transaction id' },
+        { status: 400 }
+      );
+    }
     await Transaction.findByIdAndDelete(id);
     return NextResponse.json({ message: 'Transaction deleted' });
   } catch (error) {
