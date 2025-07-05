@@ -5,6 +5,9 @@ import AddTransactionForm from './AddTransactionForm';
 import TransactionList from './TransactionList';
 import { TransactionType } from '@/types';
 import MonthlyBarChart from './MonthlyBarChart';
+import SummaryDashboard from './SummaryDashboard';
+import CategoryPieChart from './CategoryPieChart';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ClientApp() {
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
@@ -35,21 +38,45 @@ export default function ClientApp() {
   }, []);
 
   return (
-    <div>
-      <AddTransactionForm onAdd={handleAdd} />
+    <div className="min-h-screen bg-white text-black px-4 py-10">
+      {/* Add Transaction Form */}
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 mb-10">
+        <h1 className="text-2xl font-bold mb-4">Add New Transaction</h1>
+        <AddTransactionForm onAdd={handleAdd} />
+      </div>
+
       {loading ? (
-        <div>Loading transactions...</div>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-72 rounded-xl" />
+          <Skeleton className="h-72 rounded-xl" />
+          <Skeleton className="h-[300px] col-span-2 rounded-xl" />
+        </div>
       ) : (
-        <TransactionList
-          transactions={transactions}
-          onDelete={handleDelete}
-          onEdit={handleEdit}
-        />
-      )}
-      {loading ? (
-        <div>Loading chart...</div>
-      ) : (
-        <MonthlyBarChart transactions={transactions} />
+        <div className="max-w-6xl mx-auto space-y-10">
+          {/* Transaction List + Summary */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <TransactionList
+                transactions={transactions}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+              />
+            </div>
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <SummaryDashboard transactions={transactions} />
+            </div>
+          </div>
+
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <MonthlyBarChart transactions={transactions} />
+            </div>
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <CategoryPieChart transactions={transactions} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

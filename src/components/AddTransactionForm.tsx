@@ -4,6 +4,13 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { TransactionType } from "@/types";
 
 export default function AddTransactionForm({
@@ -56,9 +63,10 @@ export default function AddTransactionForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md">
       <div>
-        <Label>Amount</Label>
+        <Label className="mb-3">Amount</Label>
         <Input
           name="amount"
+          placeholder="e.g. 1000"
           type="number"
           value={formData.amount}
           onChange={handleChange}
@@ -66,25 +74,42 @@ export default function AddTransactionForm({
         />
       </div>
       <div>
-        <Label>Description</Label>
+        <Label className="mb-3">Description</Label>
         <Input
           name="description"
+          type="text"
+          placeholder="e.g. Groceries, Rent"
           value={formData.description}
           onChange={handleChange}
           required
         />
       </div>
+
       <div>
-        <Label>Category</Label>
-        <Input
-          name="category"
+        <Label className="mb-3">Category</Label>
+        <Select
           value={formData.category}
-          onChange={handleChange}
-          required
-        />
+          onValueChange={(value) =>
+            setFormData({ ...formData, category: value })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Food">Food</SelectItem>
+            <SelectItem value="Transport">Transport</SelectItem>
+            <SelectItem value="Entertainment">Entertainment</SelectItem>
+            <SelectItem value="Health">Health</SelectItem>
+            <SelectItem value="Housing">Housing</SelectItem>
+            <SelectItem value="Utilities">Utilities</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
       <div>
-        <Label>Date</Label>
+        <Label className="mb-3">Date</Label>
         <Input
           name="date"
           type="date"
