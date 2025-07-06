@@ -26,6 +26,7 @@ export default function AddTransactionForm({
   });
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -34,93 +35,109 @@ export default function AddTransactionForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
-    if (!formData.amount || Number(formData.amount) <= 0) {
-      alert("Amount must be greater than 0");
+    const amountValue = Number(formData.amount);
+
+    if (
+      !formData.amount ||
+      !formData.description ||
+      !formData.category ||
+      !formData.date
+    ) {
+      setError("Please fill all fields.");
+      setLoading(false);
       return;
     }
-    if (!formData.description || !formData.category || !formData.date) {
-      alert("Please fill all fields");
+
+    if (isNaN(amountValue) || amountValue <= 0) {
+      setError("Amount must be greater than 0.");
+      setLoading(false);
       return;
     }
 
     try {
       const res = await fetch("/api/transactions", {
         method: "POST",
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          amount: amountValue,
+        }),
       });
 
       const data = await res.json();
       onAdd(data);
       setFormData({ amount: "", description: "", category: "", date: "" });
-    } catch (error) {
-      console.error("Add failed:", error);
+    } catch {
+      setError("Failed to add transaction.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md">
-      <div>
-        <Label className="mb-3">Amount</Label>
-        <Input
-          name="amount"
-          placeholder="e.g. 1000"
-          type="number"
-          value={formData.amount}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <Label className="mb-3">Description</Label>
-        <Input
-          name="description"
-          type="text"
-          placeholder="e.g. Groceries, Rent"
-          value={formData.description}
-          onChange={handleChange}
-          required
-        />
-      </div>
+    <div>
+      <h1 className="text-2xl font-bold mb-4">Add New Transaction</h1>
+      <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md">
+        <div>
+          <Label className="mb-3">Amount (₹)</Label>
+          <Input
+            name="amount"
+            placeholder="e.g. 1000"
+            type="number"
+            value={formData.amount}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div>
+          <Label className="mb-3">Description</Label>
+          <Input
+            name="description"
+            type="text"
+            placeholder="e.g. Groceries, Rent"
+            value={formData.description}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div>
+          <Label className="mb-3">Category</Label>
+          <Select
+            value={formData.category}
+            onValueChange={(value) =>
+              setFormData({ ...formData, category: value })
+            }
+          >
+            <SelectTrigger className="bg-neutral-800 text-black border border-neutral-700">
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent className="bg-neutral-800 text-white border border-neutral-700">
+              {["Food", "Transport", "Entertainment", "Health", "Housing", "Utilities", "Other"].map((c) => (
+                <SelectItem key={c} value={c} className="hover:bg-neutral-700">
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="mb-3">Date</Label>
+          <Input
+            name="date"
+            type="date"
+            value={formData.date}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-      <div>
-        <Label className="mb-3">Category</Label>
-        <Select
-          value={formData.category}
-          onValueChange={(value) =>
-            setFormData({ ...formData, category: value })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Food">Food</SelectItem>
-            <SelectItem value="Transport">Transport</SelectItem>
-            <SelectItem value="Entertainment">Entertainment</SelectItem>
-            <SelectItem value="Health">Health</SelectItem>
-            <SelectItem value="Housing">Housing</SelectItem>
-            <SelectItem value="Utilities">Utilities</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <div>
-        <Label className="mb-3">Date</Label>
-        <Input
-          name="date"
-          type="date"
-          value={formData.date}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <Button type="submit" disabled={loading}>
-        {loading ? "Adding..." : "Add Transaction"}
-      </Button>
-    </form>
+        <Button type="submit" disabled={loading}>
+          {loading ? "Adding..." : "Add Transaction"}
+        </Button>
+      </form>
+    </div>
   );
 }
